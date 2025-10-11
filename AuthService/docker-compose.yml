@@ -1,0 +1,38 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: dev-postgres
+    environment:
+      POSTGRES_PASSWORD: Atul2192
+      POSTGRES_DB: switchboard
+      POSTGRES_USER: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: dev-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  redpanda:
+    image: redpandadata/redpanda:latest
+    container_name: dev-redpanda
+    command: >
+      redpanda start
+      --overprovisioned
+      --smp 1
+      --memory 1G
+      --reserve-memory 0M
+      --node-id 0
+      --check=false
+    ports:
+      - "9092:9092"   # Kafka API (for producers/consumers)
+      - "9644:9644"   # Redpanda Admin API
+    restart: unless-stopped
