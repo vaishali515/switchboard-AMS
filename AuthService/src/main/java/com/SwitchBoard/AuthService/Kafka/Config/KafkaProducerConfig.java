@@ -9,6 +9,8 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import switchboard.schemas.OTPNotificationEvent;
+import switchboard.schemas.OnboardingEvent;
 import switchboard.schemas.UserCreatedEvent;
 
 import java.util.HashMap;
@@ -20,8 +22,9 @@ public class KafkaProducerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
+    // ----------------- OTPNotificationEvent Producer -----------------
     @Bean
-    public ProducerFactory<String, UserCreatedEvent> producerFactory() {
+    public ProducerFactory<String, OTPNotificationEvent> otpProducerFactory() {
         Map<String, Object> config = new HashMap<>();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -31,7 +34,22 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, UserCreatedEvent> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+    public KafkaTemplate<String, OTPNotificationEvent> otpKafkaTemplate() {
+        return new KafkaTemplate<>(otpProducerFactory());
+    }
+
+    @Bean
+    public ProducerFactory<String, OnboardingEvent> onboardingEventProducerFactory() {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        config.put(ProducerConfig.ACKS_CONFIG, "all");
+        return new DefaultKafkaProducerFactory<>(config);
+    }
+
+    @Bean
+    public KafkaTemplate<String, OnboardingEvent> onboardingEventKafkaTemplate() {
+        return new KafkaTemplate<>(onboardingEventProducerFactory());
     }
 }

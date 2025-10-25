@@ -5,6 +5,7 @@ import com.SwitchBoard.AuthService.DTO.Account.AccountRequestDto;
 import com.SwitchBoard.AuthService.DTO.Account.AccountResponseDto;
 import com.SwitchBoard.AuthService.DTO.Account.USER_ROLE;
 import com.SwitchBoard.AuthService.DTO.Authentication.ApiResponse;
+import com.SwitchBoard.AuthService.Kafka.Service.impl.OnboardingEventProducer;
 import com.SwitchBoard.AuthService.Model.Account;
 import com.SwitchBoard.AuthService.Repository.AccountRepository;
 import com.SwitchBoard.AuthService.Service.Account.AccountService;
@@ -22,6 +23,7 @@ import java.util.UUID;
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
+    private final OnboardingEventProducer onboardingEventProducer;
 
     public ApiResponse createProfile(AccountRequestDto account) {
         log.info("AccountService : createProfile : Creating account for user - {}", account.getName());
@@ -49,6 +51,8 @@ public class AccountServiceImpl implements AccountService {
             log.debug("AccountService : createProfile : Saving new account to database - {}", newAccount);
             accountRepository.save(newAccount);
             log.info("AccountService : createProfile : Account created successfully - {}", account.getEmail());
+            onboardingEventProducer.publishOnboardingNotification(newAccount.getEmail(), newAccount.getName());
+            log.info("AccountService : createProfile : Published onboarding notification for - {}", newAccount.getEmail());
             return ApiResponse.success("Account created successfully for " + account.getName(), true);
         } catch (IllegalArgumentException e) {
             log.error("AccountService : createProfile : IllegalArgumentException - {}", e.getMessage());
