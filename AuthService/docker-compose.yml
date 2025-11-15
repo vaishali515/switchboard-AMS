@@ -1,13 +1,11 @@
-version: '3.9'
-
 services:
   postgres:
     image: postgres:17
     container_name: dev-postgres
     environment:
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: Atul2192
       POSTGRES_DB: switchboard
-      POSTGRES_USER: postgres
     ports:
       - "5432:5432"
     volumes:
@@ -19,6 +17,8 @@ services:
     container_name: dev-redis
     ports:
       - "6379:6379"
+    volumes:
+      - redisdata:/data
     restart: unless-stopped
 
   redpanda:
@@ -36,3 +36,7 @@ services:
       - "9092:9092"   # Kafka API (for producers/consumers)
       - "9644:9644"   # Redpanda Admin API
     restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:

@@ -5,12 +5,14 @@ import com.SwitchBoard.AuthService.DTO.Authentication.AuthResponse;
 import com.SwitchBoard.AuthService.Exception.ResourceNotFoundException;
 import com.SwitchBoard.AuthService.Exception.UnauthorizedException;
 import com.SwitchBoard.AuthService.Exception.UnexpectedException;
+import com.SwitchBoard.AuthService.Kafka.Service.impl.OTPEventProducerService;
 import com.SwitchBoard.AuthService.Model.Account;
 import com.SwitchBoard.AuthService.Repository.AccountRepository;
 import com.SwitchBoard.AuthService.Util.JwtUtil;
 import com.SwitchBoard.AuthService.Util.OtpUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -26,12 +28,22 @@ public class OtpService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final JwtUtil jwtUtil;
     private final AccountRepository accountRepository;
+    private final OTPEventProducerService otpEventProducerService;
 
-    private static final String OTP_PREFIX = "otp:";
-    private static final String COOLDOWN_PREFIX = "cooldown:";
-    private static final int OTP_TTL_MINUTES = 5;
-    private static final int COOLDOWN_SECONDS = 60;
-    private static final int MAX_ATTEMPTS = 3;
+    @Value("${otp.prefix}")
+    private String OTP_PREFIX;
+
+    @Value("${otp.cooldown.prefix}")
+    private String COOLDOWN_PREFIX;
+
+    @Value("${otp.ttl.minutes}")
+    private int OTP_TTL_MINUTES;
+
+    @Value("${otp.cooldown.seconds}")
+    private int COOLDOWN_SECONDS;
+
+    @Value("${otp.max.attempts}")
+    private int MAX_ATTEMPTS;
 
     public ApiResponse generateOtp(String email) {
         log.info("OtpService : generateOtp : Generating OTP for email - {}", email);
@@ -66,8 +78,9 @@ public class OtpService {
         redisTemplate.opsForValue().set(cooldownKey, "1", Duration.ofSeconds(COOLDOWN_SECONDS));
 
         // (In real project: Send OTP via Email/SMS)
+        otpEventProducerService.publishOTPNotification(email,otp);
         log.info("OtpService : generateOtp : OTP sent successfully to email - {}", email);
-        return ApiResponse.success("OTP sent successfully to " + email + ". OTP: " + otp, true);
+        return ApiResponse.success("OTP sent successfully to " + email, true);
     }
 
     public AuthResponse validateOtp(String email, String otp) throws Exception {
