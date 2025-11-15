@@ -17,6 +17,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -49,22 +50,23 @@ public class JwtUtil {
     }
 
     /** Generate JWT with userId, username, role */
-    public String generateToken(String email, String username, List<USER_ROLE> role) throws Exception {
+    public String generateToken(String email, String username, UUID userId, List<USER_ROLE> role) throws Exception {
         log.info("JwtUtil : generateToken : Generating JWT token for user - {}", email);
         try {
             Date now = new Date();
             Date expiryDate = new Date(System.currentTimeMillis() + jwtExpiration);
             log.debug("JwtUtil : generateToken : Setting token expiration to {}", expiryDate);
-            
+
             String token = Jwts.builder()
                     .setSubject(email)
+                    .claim("userId", userId)        // ADD THIS
                     .claim("username", username)
                     .claim("role", role)
                     .setIssuedAt(now)
                     .setExpiration(expiryDate)
                     .signWith(getPrivateKey(), SignatureAlgorithm.RS256)
                     .compact();
-            
+
             log.info("JwtUtil : generateToken : JWT token generated successfully");
             return token;
         } catch (Exception e) {

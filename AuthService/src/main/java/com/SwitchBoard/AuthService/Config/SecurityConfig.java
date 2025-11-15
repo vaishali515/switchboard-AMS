@@ -17,7 +17,8 @@ public class SecurityConfig {
                         // Permit all for auth endpoints and Swagger
                         .requestMatchers(
                                 "/api/v1/auth/**",
-                                "/api/v1/account/**",
+                                "/api/v1/auth/account/**",
+                                "/.well-known/jwks.json",  // JWKS endpoint for JWT validation
                                 "/v3/api-docs/**",
                                 "/v3/api-docs.yaml",
                                 "/swagger-ui/**",

@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/account")
+@RequestMapping("/api/v1/auth/account")
 @Slf4j
 @RequiredArgsConstructor
 @Tag(name = "Account Management", description = "API endpoints for managing user accounts")

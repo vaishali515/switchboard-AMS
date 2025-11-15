@@ -3,13 +3,13 @@ package com.SwitchBoard.AuthService.Controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
@@ -57,10 +57,12 @@ public class JwksController {
     }
 
     private PublicKey loadPublicKey() throws Exception {
-        log.debug("JwksController : loadPublicKey : Loading public key from path - {}", publicKeyPath);
+        log.debug("JwksController : loadPublicKey : Loading public key from classpath - {}", publicKeyPath);
         try {
-            byte[] keyBytes = Files.readAllBytes(Paths.get(publicKeyPath));
-            String key = new String(keyBytes)
+            ClassPathResource resource = new ClassPathResource(publicKeyPath);
+            String keyContent = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            
+            String key = keyContent
                     .replace("-----BEGIN PUBLIC KEY-----", "")
                     .replace("-----END PUBLIC KEY-----", "")
                     .replaceAll("\\s+", "");

@@ -104,7 +104,7 @@ public class OtpService {
             }
             
             log.debug("OtpService : validateOtp : Generating JWT token");
-            String jwtString = jwtUtil.generateToken(email, account.getName(), account.getUserRole());
+            String jwtString = jwtUtil.generateToken(email, account.getName(), account.getId(),account.getUserRole());
             log.info("OtpService : validateOtp : JWT token generated successfully");
             
             return new AuthResponse(jwtString);
