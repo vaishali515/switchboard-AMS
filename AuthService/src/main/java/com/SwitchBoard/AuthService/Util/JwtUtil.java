@@ -54,7 +54,7 @@ public class JwtUtil {
         log.info("JwtUtil : generateToken : Generating JWT token for user - {}", email);
         try {
             Date now = new Date();
-            Date expiryDate = new Date(System.currentTimeMillis() + jwtExpiration);
+            Date expiryDate = new Date(System.currentTimeMillis() + jwtExpiration*1000);
             log.debug("JwtUtil : generateToken : Setting token expiration to {}", expiryDate);
 
             String token = Jwts.builder()

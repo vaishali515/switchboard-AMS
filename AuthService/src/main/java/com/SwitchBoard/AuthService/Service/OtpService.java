@@ -7,6 +7,7 @@ import com.SwitchBoard.AuthService.Exception.UnauthorizedException;
 import com.SwitchBoard.AuthService.Exception.UnexpectedException;
 import com.SwitchBoard.AuthService.Kafka.Service.impl.OTPEventProducerService;
 import com.SwitchBoard.AuthService.Model.Account;
+import com.SwitchBoard.AuthService.Model.RefreshToken;
 import com.SwitchBoard.AuthService.Repository.AccountRepository;
 import com.SwitchBoard.AuthService.Util.JwtUtil;
 import com.SwitchBoard.AuthService.Util.OtpUtils;
@@ -29,6 +30,10 @@ public class OtpService {
     private final JwtUtil jwtUtil;
     private final AccountRepository accountRepository;
     private final OTPEventProducerService otpEventProducerService;
+    private final RefreshTokenService refreshTokenService;
+
+    @Value("${jwt.expiration}")
+    private Long jwtExpiration;
 
     @Value("${otp.prefix}")
     private String OTP_PREFIX;
@@ -117,10 +122,18 @@ public class OtpService {
             }
             
             log.debug("OtpService : validateOtp : Generating JWT token");
-            String jwtString = jwtUtil.generateToken(email, account.getName(), account.getId(),account.getUserRole());
-            log.info("OtpService : validateOtp : JWT token generated successfully");
+            String jwtString = jwtUtil.generateToken(email, account.getName(), account.getId(), account.getUserRole());
             
-            return new AuthResponse(jwtString);
+            log.debug("OtpService : validateOtp : Creating refresh token");
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(account);
+            
+            log.info("OtpService : validateOtp : Tokens generated successfully");
+            
+            return AuthResponse.builder()
+                    .accessToken(jwtString)
+                    .refreshToken(refreshToken.getToken())
+                    .expiresIn(jwtExpiration)
+                    .build();
         } else {
             log.warn("OtpService : validateOtp : Invalid OTP provided for email - {}", email);
             redisTemplate.opsForHash().put(key, "attempts", attempts + 1);
